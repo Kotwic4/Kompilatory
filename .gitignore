@@ -1,0 +1,4 @@
+*.tar
+parser.out
+parsetab.py
+.idea/
