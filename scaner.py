@@ -1,22 +1,5 @@
 import ply.lex as lex
 
-# operatory binare: +, -, *, /
-# macierzowe operatory binarne (dla operacji element po elemencie): .+, .-, .*, ./
-# operatory przypisania: =, +=, -=, *=, /=
-# operatory relacyjne: <, >, <=, >=, !=, ==
-# nawiasy: (,), [,], {,}
-# operator zakresu: :
-# transpozycja macierzy: '
-# przecinek i średnik: , ;
-
-# słowa kluczowe: if, else, for, while
-# instructions break, continue and return
-# słowa kluczowe: eye, zeros and ones
-# słowa kluczowe: print
-# identyfikatory
-# liczby całkowite
-# liczby zmiennoprzecinkowe
-
 reserved = {
     'if': 'IF',
     'else': 'ELSE',
@@ -49,7 +32,8 @@ tokens = [
 
              'ID',
              'FLOAT',
-             'NUMBER',
+             'INT',
+             'STRING'
          ] + list(reserved.values())
 
 literals = "+-*/()[]{}:,;'><="
@@ -67,25 +51,27 @@ t_NEQ = r'!='
 t_GE = r'>='
 t_LE = r'<='
 
-t_ignore = ' \t'
+t_ignore = ' \t\r'
 
 
 def t_ignore_COMMENT(t):
-    '\#.*(\r)?\n'
-    t.lexer.lineno += len(t.value)
+    r'\#.*'
 
 
-def t_NUMBER(t):
-    # r'0|([1-9]((\d|_)*\d)*)' # ten regex wykrywa także _ w cyfrach, nie wiemy czy to było wymagane
+def t_FLOAT(t):
+    r'(\d+\.\d*|\.\d+)(e-?\d+)?'
+    t.value = float(t.value)
+    return t
+
+
+def t_INT(t):
     r'0|([1-9]\d*)'
     t.value = int(t.value)
     return t
 
 
-def t_FLOAT(t):
-    # r'(\d((\d|_)*\d)*\.(\d((\d|_)*\d)*)?|\.\d((\d|_)*\d)*)(e-?\d((\d|_)*\d)*)?'  # ten regex wykrywa także _ w cyfrach, nie wiemy czy to było wymagane
-    r'(\d+\.\d*|\.\d+)(e-?\d+)?'
-    t.value = float(t.value)
+def t_STRING(t):
+    r'"[^"]*"'
     return t
 
 
@@ -96,7 +82,7 @@ def t_ID(t):
 
 
 def t_newline(t):
-    r'(\r?\n)+'
+    r'\n+'
     t.lexer.lineno += len(t.value)
 
 
