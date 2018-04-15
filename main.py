@@ -1,25 +1,7 @@
 import sys
 
-from parser import parser
+from mparser import parser
 from scaner import lexer, find_column
-
-# operatory binare: +, -, *, /
-# macierzowe operatory binarne (dla operacji element po elemencie): .+, .-, .*, ./
-# operatory przypisania: =, +=, -=, *=, /=
-# operatory relacyjne: <, >, <=, >=, !=, ==
-# nawiasy: (,), [,], {,}
-# operator zakresu: :
-# transpozycja macierzy: '
-# przecinek i średnik: , ;
-
-# słowa kluczowe: if, else, for, while
-# instructions break, continue and return
-# słowa kluczowe: eye, zeros and ones
-# słowa kluczowe: print
-# identyfikatory
-# liczby całkowite
-# liczby zmiennoprzecinkowe
-
 
 if __name__ == '__main__':
     try:
