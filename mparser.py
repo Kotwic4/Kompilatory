@@ -19,16 +19,14 @@ class Parser:
         ('nonassoc', '>', '<', 'EQ', 'NEQ', 'GE', 'LE',),
         ('left', '+', '-', 'M_PLUS', 'M_MINUS'),
         ('left', '*', '/', 'M_TIMES', 'M_DIVIDE'),
-        ('left', 'TRANSPOSE'),
+        ('left', '\''),
         ('right', 'UNARY')
     )
 
     def p_error(self, p):
         if p:
-            print("Syntax error at line {0}, column {1}: LexToken({2}, '{3}')".format(p.lineno,
-                                                                                      self.scanner.find_column(p),
-                                                                                      p.type,
-                                                                                      p.value))
+            print("Syntax error at line {0}, column {1}: LexToken({2}, '{3}')"
+                  .format(p.lineno, self.scanner.find_column(p), p.type, p.value))
         else:
             print("Unexpected end of input")
         self.error = True
@@ -141,34 +139,53 @@ class Parser:
         if self.debug:
             print('p_rows: {}'.format(p[0]))
 
-    def p_expression(self, p):
-        """EXPRESSION : VALUE
-                      | '(' EXPRESSION ')'
-                      | '-' EXPRESSION %prec UNARY
-                      | EXPRESSION "'" %prec TRANSPOSE
-                      | EXPRESSION '+' EXPRESSION
-                      | EXPRESSION '-' EXPRESSION
-                      | EXPRESSION '*' EXPRESSION
-                      | EXPRESSION '/' EXPRESSION
-                      | EXPRESSION M_PLUS EXPRESSION
+    def p_expression_matrix(self, p):
+        """EXPRESSION : EXPRESSION M_PLUS EXPRESSION
                       | EXPRESSION M_MINUS EXPRESSION
                       | EXPRESSION M_TIMES EXPRESSION
-                      | EXPRESSION M_DIVIDE EXPRESSION
-                      | EYE '(' EXPRESSION ')'
+                      | EXPRESSION M_DIVIDE EXPRESSION"""
+        p[0] = ast.ExpressionNode(p[1], p[2], p[3])
+        if self.debug:
+            print('p_expression: {}'.format(p[0]))
+
+    def p_math_math(self, p):
+        """EXPRESSION : EXPRESSION '+' EXPRESSION
+                      | EXPRESSION '-' EXPRESSION
+                      | EXPRESSION '*' EXPRESSION
+                      | EXPRESSION '/' EXPRESSION"""
+        p[0] = ast.ExpressionNode(p[1], p[2], p[3])
+        if self.debug:
+            print('p_expression: {}'.format(p[0]))
+
+    def p_expression_function(self, p):
+        """EXPRESSION : EYE '(' EXPRESSION ')'
                       | ZEROS '(' EXPRESSION ')'
                       | ONES '(' EXPRESSION ')'"""
-        if len(p) == 2:  # VALUE
-            p[0] = p[1]
-        elif len(p) == 3 and p[1] == '-':  # '-' EXPRESSION
-            p[0] = ast.NegationNode(p[2])
-        elif len(p) == 3 and p[2] == "'":  # EXPRESSION "'"
-            p[0] = ast.TranspositionNode(p[1])
-        elif len(p) == 4 and p[1] == '(' and p[3] == ')':  # '(' EXPRESSION ')'
-            p[0] = p[2]
-        elif len(p) == 5 and p[2] == '(' and p[4] == ')':  # FUNCTION '(' EXPRESSION ')'
-            p[0] = ast.FunctionNode(p[1], p[3])
-        elif len(p) == 4:
-            p[0] = ast.ExpressionNode(p[1], p[2], p[3])
+        p[0] = ast.FunctionNode(p[1], p[3])
+        if self.debug:
+            print('p_expression: {}'.format(p[0]))
+
+    def p_expression_transopse(self, p):
+        """EXPRESSION : EXPRESSION "'" """
+        p[0] = ast.TranspositionNode(p[1])
+        if self.debug:
+            print('p_expression: {}'.format(p[0]))
+
+    def p_expression_value(self, p):
+        """EXPRESSION : VALUE"""
+        p[0] = p[1]
+        if self.debug:
+            print('p_expression: {}'.format(p[0]))
+
+    def p_expression_group(self, p):
+        """EXPRESSION : '(' EXPRESSION ')'"""
+        p[0] = p[2]
+        if self.debug:
+            print('p_expression: {}'.format(p[0]))
+
+    def p_expression_unary(self, p):
+        """EXPRESSION : '-' EXPRESSION %prec UNARY"""
+        p[0] = ast.NegationNode(p[2])
         if self.debug:
             print('p_expression: {}'.format(p[0]))
 
