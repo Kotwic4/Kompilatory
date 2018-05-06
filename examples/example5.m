@@ -15,3 +15,7 @@ else {
    print "ola";
    print "jacek";
 }
+
+{
+ x = 3;
+}

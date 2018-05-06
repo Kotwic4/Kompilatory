@@ -1,5 +1,24 @@
-class Range:
-    def __init__(self, start, end, jump=1):
+class Node(object):
+    pass
+
+
+class ValueNode(Node):
+    def __init__(self, value):
+        self.value = value
+
+
+class ProgramNode(Node):
+    def __init__(self, instructions):
+        self.instructions = instructions
+
+
+class BodyNode(Node):
+    def __init__(self, instructions):
+        self.instructions = instructions
+
+
+class RangeNode(Node):
+    def __init__(self, start, end, jump=ValueNode(1)):
         self.start = start
         self.end = end
         self.jump = jump
@@ -8,7 +27,7 @@ class Range:
         return '[ {} : {} : {} ]'.format(self.start, self.end, self.jump)
 
 
-class For:
+class ForNode(Node):
     def __init__(self, id, range, body):
         self.id = id
         self.range = range
@@ -18,7 +37,7 @@ class For:
         return 'FOR {} IN {} DO {}'.format(self.id, self.range, self.body)
 
 
-class While:
+class WhileNode(Node):
     def __init__(self, condition, body):
         self.condition = condition
         self.body = body
@@ -27,7 +46,7 @@ class While:
         return 'WHILE {} DO {}'.format(self.condition, self.body)
 
 
-class If:
+class IfNode(Node):
     def __init__(self, condition, body):
         self.condition = condition
         self.body = body
@@ -36,7 +55,7 @@ class If:
         return 'IF {} THEN {}'.format(self.condition, self.body)
 
 
-class IfElse:
+class IfElseNode(Node):
     def __init__(self, condition, body, else_body):
         self.condition = condition
         self.body = body
@@ -46,17 +65,17 @@ class IfElse:
         return 'IF {} THEN {} ELSE {}'.format(self.condition, self.body, self.else_body)
 
 
-class Break:
+class BreakNode(Node):
     def __repr__(self):
         return 'BREAK'
 
 
-class Continue:
+class ContinueNode(Node):
     def __repr__(self):
         return 'CONTINUE'
 
 
-class Return:
+class ReturnNode(Node):
     def __init__(self, result):
         self.result = result
 
@@ -64,7 +83,7 @@ class Return:
         return 'RETURN( {} )'.format(self.result)
 
 
-class Print:
+class PrintNode(Node):
     def __init__(self, printable):
         self.printable = printable
 
@@ -72,7 +91,7 @@ class Print:
         return 'PRINT( {} )'.format(self.printable)
 
 
-class Condition:
+class ConditionNode(Node):
     def __init__(self, left, operator, right):
         self.left = left
         self.operator = operator
@@ -82,7 +101,7 @@ class Condition:
         return '( {} {} {} )'.format(self.left, self.operator, self.right)
 
 
-class Assignment:
+class AssignmentNode(Node):
     def __init__(self, left, operator, right):
         self.left = left
         self.operator = operator
@@ -92,7 +111,7 @@ class Assignment:
         return '{} {} {}'.format(self.left, self.operator, self.right)
 
 
-class AssignTo:
+class AssignToNode(Node):
     def __init__(self, id):
         self.id = id
 
@@ -100,7 +119,7 @@ class AssignTo:
         return '{}'.format(self.id)
 
 
-class Access:
+class AccessNode(Node):
     def __init__(self, id, specifier):
         self.id = id
         self.specifier = specifier
@@ -109,7 +128,7 @@ class Access:
         return '{}[ {} ]'.format(self.id, self.specifier)
 
 
-class Expression:
+class ExpressionNode(Node):
     def __init__(self, left, operator, right):
         self.left = left
         self.operator = operator
@@ -119,7 +138,7 @@ class Expression:
         return '( {} {} {} )'.format(self.left, self.operator, self.right)
 
 
-class Transposition:
+class TranspositionNode(Node):
     def __init__(self, value):
         self.value = value
 
@@ -127,7 +146,7 @@ class Transposition:
         return "( {}' )".format(self.value)
 
 
-class Negation:
+class NegationNode(Node):
     def __init__(self, value):
         self.value = value
 
@@ -135,10 +154,28 @@ class Negation:
         return '( -{} )'.format(self.value)
 
 
-class Function:
+class FunctionNode(Node):
     def __init__(self, name, argument):
         self.name = name
         self.argument = argument
 
     def __repr__(self):
         return '{}( {} )'.format(self.name, self.argument)
+
+
+class MatrixNode(Node):
+    def __init__(self, rows):
+        self.rows = rows
+
+
+class VectorNode(Node):
+    def __init__(self, values):
+        self.values = values
+
+    def append(self, value):
+        self.values.append(value)
+
+
+class ErrorNode(Node):
+    def __init__(self):
+        pass
