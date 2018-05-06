@@ -2,7 +2,7 @@ class Node(object):
     pass
 
 
-class ValueNode(Node):
+class ConstValueNode(Node):
     def __init__(self, value):
         self.value = value
 
@@ -18,7 +18,7 @@ class BodyNode(Node):
 
 
 class RangeNode(Node):
-    def __init__(self, start, end, jump=ValueNode(1)):
+    def __init__(self, start, end, jump=ConstValueNode(1)):
         self.start = start
         self.end = end
         self.jump = jump

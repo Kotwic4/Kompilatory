@@ -14,23 +14,15 @@ def print_with_ident(value, indent):
      print("| "*indent + str(value))
 
 
-def check_print_with_ident(value, indent):
-    # todo funkcja jest brzyka ale rozwiazuje problem z id i value
-    if hasattr(value, 'printTree'):
-        value.printTree(indent)
-    else:
-        print_with_ident(value, indent)
-
-
 class TreePrinter:
 
     @addToClass(ast.Node)
     def printTree(self, indent=0):
         raise Exception("printTree not defined in class " + self.__class__.__name__)
 
-    @addToClass(ast.ValueNode)
+    @addToClass(ast.ConstValueNode)
     def printTree(self, indent=0):
-        check_print_with_ident(self.value, indent)
+        print_with_ident(self.value, indent)
 
     @addToClass(ast.ProgramNode)
     def printTree(self, indent=0):
@@ -39,7 +31,6 @@ class TreePrinter:
 
     @addToClass(ast.BodyNode)
     def printTree(self, indent=0):
-        # todo czy informowac o tym ze body?
         for instruction in self.instructions:
             instruction.printTree(indent)
 
@@ -53,7 +44,7 @@ class TreePrinter:
     @addToClass(ast.ForNode)
     def printTree(self, indent=0):
         print_with_ident("For", indent)
-        check_print_with_ident(self.id, indent+1)
+        self.id.printTree(indent+1)
         self.range.printTree(indent + 1)
         self.body.printTree(indent + 1)
 
@@ -95,7 +86,8 @@ class TreePrinter:
     @addToClass(ast.PrintNode)
     def printTree(self, indent=0):
         print_with_ident("Print", indent)
-        self.printable.printTree(indent + 1)
+        for value in self.printable:
+            value.printTree(indent+1)
 
     @addToClass(ast.ConditionNode)
     def printTree(self, indent=0):
@@ -111,12 +103,12 @@ class TreePrinter:
 
     @addToClass(ast.AssignToNode)
     def printTree(self, indent=0):
-        check_print_with_ident(self.id, indent)
+        self.id.printTree(indent)
 
     @addToClass(ast.AccessNode)
     def printTree(self, indent=0):
         print_with_ident("Access", indent)
-        check_print_with_ident(self.id, indent + 1)
+        self.id.printTree(indent + 1)
         self.specifier.printTree(indent + 1)
 
     @addToClass(ast.ExpressionNode)

@@ -78,14 +78,14 @@ class Parser:
             print('p_assignment: {}'.format(p[0]))
 
     def p_left_assignment(self, p):
-        """LEFT_ASSIGNMENT : ID
+        """LEFT_ASSIGNMENT : CONST_ID
                            | ACCESS"""
         p[0] = ast.AssignToNode(p[1])
         if self.debug:
             print('p_left_assignment: {}'.format(p[0]))
 
     def p_access(self, p):
-        """ACCESS : ID '[' SEQUENCE ']'"""
+        """ACCESS : CONST_ID '[' SEQUENCE ']'"""
         p[0] = ast.AccessNode(p[1], p[3])
         if self.debug:
             print('p_access: {}'.format(p[0]))
@@ -94,7 +94,7 @@ class Parser:
         """SEQUENCE : SEQUENCE ',' EXPRESSION
                     | EXPRESSION"""
         if len(p) == 2:
-            p[0] = ast.VectorNode([p[1]])
+            p[0] = [p[1]]
         elif len(p) == 4:
             p[1].append(p[3])
             p[0] = p[1]
@@ -102,15 +102,27 @@ class Parser:
                 print('p_sequence: {}'.format(p[0]))
 
     def p_value(self, p):
-        """VALUE : FLOAT
-                 | INT
-                 | STRING
-                 | ID
+        """VALUE : CONST_VALUE
                  | MATRIX
                  | ACCESS"""
-        p[0] = ast.ValueNode(p[1])
+        p[0] = p[1]
         if self.debug:
             print('p_value: {}'.format(p[0]))
+
+    def p_const_value(self, p):
+        """CONST_VALUE : FLOAT
+                       | INT
+                       | STRING
+                       | ID"""
+        p[0] = ast.ConstValueNode(p[1])
+        if self.debug:
+            print('p_const_value: {}'.format(p[0]))
+
+    def p_const_id(self, p):
+        """CONST_ID : ID"""
+        p[0] = ast.ConstValueNode(p[1])
+        if self.debug:
+            print('p_const_id: {}'.format(p[0]))
 
     def p_matrix(self, p):
         """MATRIX : '[' ROWS ']'"""
@@ -122,9 +134,9 @@ class Parser:
         """ROWS : ROWS ';' SEQUENCE
                 | SEQUENCE"""
         if len(p) == 2:
-            p[0] = [p[1]]
+            p[0] = [ast.VectorNode(p[1])]
         elif len(p) == 4:
-            p[1].append(p[3])
+            p[1].append(ast.VectorNode(p[3]))
             p[0] = p[1]
         if self.debug:
             print('p_rows: {}'.format(p[0]))
@@ -210,7 +222,7 @@ class Parser:
             print('p_while_statement: {}'.format(p[0]))
 
     def p_for_statement(self, p):
-        """FOR_STATEMENT : FOR ID '=' RANGE INSTRUCTION"""
+        """FOR_STATEMENT : FOR CONST_ID '=' RANGE INSTRUCTION"""
         p[0] = ast.ForNode(p[2], p[4], p[5])
         if self.debug:
             print('p_for_statement: {}'.format(p[0]))
