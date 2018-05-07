@@ -86,8 +86,7 @@ class TreePrinter:
     @addToClass(ast.PrintNode)
     def printTree(self, indent=0):
         print_with_ident("Print", indent)
-        for value in self.printable:
-            value.printTree(indent+1)
+        self.printable.printTree(indent+1)
 
     @addToClass(ast.ConditionNode)
     def printTree(self, indent=0):
@@ -138,9 +137,9 @@ class TreePrinter:
         for row in self.rows:
             row.printTree(indent+1)
 
-    @addToClass(ast.VectorNode)
+    @addToClass(ast.SequenceNode)
     def printTree(self, indent=0):
-        print_with_ident("Vector", indent)
+        print_with_ident("Sequence", indent)
         for value in self.values:
             value.printTree(indent + 1)
 

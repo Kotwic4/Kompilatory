@@ -168,7 +168,7 @@ class MatrixNode(Node):
         self.rows = rows
 
 
-class VectorNode(Node):
+class SequenceNode(Node):
     def __init__(self, values):
         self.values = values
 

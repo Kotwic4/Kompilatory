@@ -92,7 +92,7 @@ class Parser:
         """SEQUENCE : SEQUENCE ',' EXPRESSION
                     | EXPRESSION"""
         if len(p) == 2:
-            p[0] = [p[1]]
+            p[0] = ast.SequenceNode([p[1]])
         elif len(p) == 4:
             p[1].append(p[3])
             p[0] = p[1]
@@ -132,9 +132,9 @@ class Parser:
         """ROWS : ROWS ';' SEQUENCE
                 | SEQUENCE"""
         if len(p) == 2:
-            p[0] = [ast.VectorNode(p[1])]
+            p[0] = [p[1]]
         elif len(p) == 4:
-            p[1].append(ast.VectorNode(p[3]))
+            p[1].append(p[3])
             p[0] = p[1]
         if self.debug:
             print('p_rows: {}'.format(p[0]))
