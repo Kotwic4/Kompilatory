@@ -50,7 +50,7 @@ class Parser:
 
     def p_instruction(self, p):
         """INSTRUCTION : STATEMENT ';'
-                       | BODY_STATEMENT
+                       | BLOCK_STATEMENT
                        | IF_STATEMENT
                        | WHILE_STATEMENT
                        | FOR_STATEMENT"""
@@ -216,11 +216,11 @@ class Parser:
         if self.debug:
             print('p_condition: {}'.format(p[0]))
 
-    def p_body_statement(self, p):
-        """BODY_STATEMENT : '{' INSTRUCTIONS '}'"""
-        p[0] = ast.BodyNode(p[2])
+    def p_block_statement(self, p):
+        """BLOCK_STATEMENT : '{' INSTRUCTIONS '}'"""
+        p[0] = ast.BlockNode(p[2])
         if self.debug:
-            print('p_body_statement: {}'.format(p[0]))
+            print('p_block_statement: {}'.format(p[0]))
 
     def p_if_statement(self, p):
         """IF_STATEMENT : IF '(' CONDITION ')' INSTRUCTION %prec IFX

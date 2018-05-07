@@ -12,7 +12,7 @@ class ProgramNode(Node):
         self.instructions = instructions
 
 
-class BodyNode(Node):
+class BlockNode(Node):
     def __init__(self, instructions):
         self.instructions = instructions
 

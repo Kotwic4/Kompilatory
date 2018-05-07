@@ -29,7 +29,7 @@ class TreePrinter:
         for instruction in self.instructions:
             instruction.printTree(indent)
 
-    @addToClass(ast.BodyNode)
+    @addToClass(ast.BlockNode)
     def printTree(self, indent=0):
         for instruction in self.instructions:
             instruction.printTree(indent)
