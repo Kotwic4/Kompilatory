@@ -9,7 +9,7 @@ from mparser import Parser
 
 def read_file():
     try:
-        filename = sys.argv[1] if len(sys.argv) > 1 else "examples/example0.m"
+        filename = sys.argv[1] if len(sys.argv) > 1 else "examples/example10B.m"
         file = open(filename, "r")
         text = file.read()
         file.close()

@@ -33,59 +33,61 @@ class TypeChecker(NodeVisitor):
         self.errors = False
         self.scope_table = ScopeTable()
 
-    def checkExprType(self, type1, type2, op, lineno):
+    @staticmethod
+    def checkMatrixExprType(type1, type2, lineno):
+        if checkType(type1, VectorType) and checkType(type2, VectorType):
+            if type1.size is None or type2.size is None:
+                return VectorType()
+            elif type1.size != type2.size:
+                print("Vectors {1} and {2} don't have the same sizes at line {0}".format(lineno, type1, type2))
+                return UnknownType()
+            else:
+                return VectorType(size=type1.size)
+        elif checkType(type1, MatrixType) and checkType(type2, MatrixType):
+            if type1.width is None or type2.width is None or type1.height is None or type2.height is None:
+                return MatrixType()
+            elif type1.width != type2.width or type1.height != type2.height:
+                print("Matrix {1} and {2} don't have the same sizes at line {0}".format(lineno, type1, type2))
+                return UnknownType()
+            else:
+                return MatrixType(width=type1.width, height=type1.height)
+        elif checkType(type1, VectorType) and (checkType(type2, FloatType) or checkType(type2, IntType)):
+            if type1.size is not None:
+                return VectorType(size=type1.size)
+            else:
+                return VectorType()
+        elif checkType(type1, MatrixType) and (checkType(type2, FloatType) or checkType(type2, IntType)):
+            if type1.width is None or type2.width is None:
+                return MatrixType()
+            else:
+                return MatrixType(width=type1.width, height=type1.height)
+        return None
 
-        if checkType(type1, UnknownType) or checkType(type2, UnknownType):
-            return UnknownType()
-
-        elif op == '.+' or op == '.-' or op == '.*' or op == './':
-            if checkType(type1, VectorType) and checkType(type2, VectorType):
-                if type1.size is None or type2.size is None:
-                    return VectorType()
-                elif type1.size != type2.size:
-                    print("Vectors {1} and {2} don't have the same sizes at line {0}".format(lineno, type1, type2))
-                    return UnknownType()
-                else:
-                    return VectorType(size=type1.size)
-            elif checkType(type1, MatrixType) and checkType(type2, MatrixType):
-                if type1.width is None or type2.width is None or type1.height is None or type2.height is None:
-                    return MatrixType()
-                elif type1.width != type2.width or type1.height != type2.height:
-                    print("Matrix {1} and {2} don't have the same sizes at line {0}".format(lineno, type1, type2))
-                    return UnknownType()
-                else:
-                    return MatrixType(width=type1.width, height=type1.height)
-            elif checkType(type1, VectorType) and (checkType(type2, FloatType) or checkType(type2, IntType)):
-                if type1.size is not None:
-                    return VectorType(size=type1.size)
-                else:
-                    return VectorType()
-            elif checkType(type1, MatrixType) and (checkType(type2, FloatType) or checkType(type2, IntType)):
-                if type1.width is None or type2.width is None:
-                    return MatrixType()
-                else:
-                    return MatrixType(width=type1.width, height=type1.height)
-
-        elif op == "==" or op == "!=" or op == ">=" or op == "<=" or op == ">" or op == "<":
-            if checkType(type1, VectorType) and checkType(type2, VectorType):
-                if type1.size is not None and type2.size is not None and type1.size != type2.size:
-                    print("Vectors {1} and {2} don't have the same sizes at line {0}".format(lineno, type1, type2))
-                    return IntType()
-                else:
-                    return IntType()
-            elif checkType(type1, MatrixType) and checkType(type2, MatrixType):
-                if type1.width is not None and type2.width is not None and type1.height is not None and type2.height is not None and (type1.width != type2.width or type1.height != type2.height):
-                    print("Matrix {1} and {2} don't have the same sizes at line {0}".format(lineno, type1, type2))
-                    return IntType()
-                else:
-                    return IntType()
-            elif (checkType(type1, FloatType) or checkType(type1, IntType)) and (
-                    checkType(type2, FloatType) or checkType(type2, IntType)):
+    @staticmethod
+    def checkCompExprType(type1, type2, lineno):
+        if checkType(type1, VectorType) and checkType(type2, VectorType):
+            if type1.size is not None and type2.size is not None and type1.size != type2.size:
+                print("Vectors {1} and {2} don't have the same sizes at line {0}".format(lineno, type1, type2))
                 return IntType()
-            elif checkType(type1, StringType) and checkType(type2, StringType):
+            else:
                 return IntType()
+        elif checkType(type1, MatrixType) and checkType(type2, MatrixType):
+            if type1.width is not None and type2.width is not None and type1.height is not None and type2.height is not None and (
+                    type1.width != type2.width or type1.height != type2.height):
+                print("Matrix {1} and {2} don't have the same sizes at line {0}".format(lineno, type1, type2))
+                return IntType()
+            else:
+                return IntType()
+        elif (checkType(type1, FloatType) or checkType(type1, IntType)) and (
+                checkType(type2, FloatType) or checkType(type2, IntType)):
+            return IntType()
+        elif checkType(type1, StringType) and checkType(type2, StringType):
+            return IntType()
+        return None
 
-        elif op == '+':
+    @staticmethod
+    def checkBasicType(type1, type2, op):
+        if op == '+':
             if checkType(type1, IntType) and checkType(type2, IntType):
                 if type1.value is not None and type2.value is not None:
                     return IntType(type1.value + type2.value)
@@ -145,8 +147,24 @@ class TypeChecker(NodeVisitor):
                     return StringType(type1.value * type2.value)
                 else:
                     return StringType()
-        print("Types {1} and {2} cannot perform operation {3} at line {0}".format(lineno, type1, type2, op))
-        return UnknownType()
+        return None
+
+    @staticmethod
+    def checkExprType(type1, type2, op, lineno):
+        result = None
+        if checkType(type1, UnknownType) or checkType(type2, UnknownType):
+            result = UnknownType()
+        elif op == '.+' or op == '.-' or op == '.*' or op == './':
+            result = TypeChecker.checkMatrixExprType(type1, type2, lineno)
+        elif op == "==" or op == "!=" or op == ">=" or op == "<=" or op == ">" or op == "<":
+            result = TypeChecker.checkCompExprType(type1, type2, lineno)
+        else:
+            result = TypeChecker.checkBasicType(type1, type2, op)
+        if result is None:
+            print("Types {1} and {2} cannot perform operation {3} at line {0}".format(lineno, type1, type2, op))
+            return UnknownType()
+        else:
+            return result
 
     def putVariable(self, id, symbol):
         name = id.value
@@ -308,10 +326,12 @@ class TypeChecker(NodeVisitor):
                 if not checkType(j, int) or not checkType(j, int):
                     result = None
                 elif i >= typ.width or j >= typ.height:
-                    print("Index [{1},{2}] out of  boundaries at line {0}".format(node.lineno, seq.value[0], seq.value[1]))
+                    print("Index [{1},{2}] out of  boundaries at line {0}".format(node.lineno, seq.value[0],
+                                                                                  seq.value[1]))
                     result = None
                 elif i < 0 or j < 0:
-                    print("Index [{1},{2}] must be positive at line {0}".format(node.lineno, seq.value[0], seq.value[1]))
+                    print(
+                        "Index [{1},{2}] must be positive at line {0}".format(node.lineno, seq.value[0], seq.value[1]))
                     result = None
                 elif typ.value is not None:
                     result = typ.value[i].value[j]
