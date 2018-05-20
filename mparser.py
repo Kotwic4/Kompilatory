@@ -1,15 +1,15 @@
 import ast
-import scaner
+from scanner import Scanner
 
 
 class Parser:
 
-    def __init__(self, scanner, debug=False):
-        self.scanner = scanner
+    def __init__(self, debug=False):
+        self.scanner = Scanner()
         self.debug = debug
         self.error = False
 
-    tokens = scaner.Scanner.tokens
+    tokens = Scanner.tokens
 
     precedence = (
         ('nonassoc', 'IFX'),
@@ -33,7 +33,7 @@ class Parser:
 
     def p_start(self, p):
         """start : INSTRUCTIONS"""
-        p[0] = ast.ProgramNode(p[1])
+        p[0] = ast.ProgramNode(p[1], p.lineno(1))
         if self.debug:
             print('p_start: {}'.format(p[0]))
 
@@ -71,20 +71,20 @@ class Parser:
                       | LEFT_ASSIGNMENT MINUS_ASSIGN EXPRESSION
                       | LEFT_ASSIGNMENT TIMES_ASSIGN EXPRESSION
                       | LEFT_ASSIGNMENT DIVIDE_ASSIGN EXPRESSION"""
-        p[0] = ast.AssignmentNode(p[1], p[2], p[3])
+        p[0] = ast.AssignmentNode(p[1], p[2], p[3], p[1].lineno)
         if self.debug:
             print('p_assignment: {}'.format(p[0]))
 
     def p_left_assignment(self, p):
         """LEFT_ASSIGNMENT : CONST_ID
                            | ACCESS"""
-        p[0] = ast.AssignToNode(p[1])
+        p[0] = ast.AssignToNode(p[1], p[1].lineno)
         if self.debug:
             print('p_left_assignment: {}'.format(p[0]))
 
     def p_access(self, p):
         """ACCESS : CONST_ID '[' SEQUENCE ']'"""
-        p[0] = ast.AccessNode(p[1], p[3])
+        p[0] = ast.AccessNode(p[1], p[3], p[1].lineno)
         if self.debug:
             print('p_access: {}'.format(p[0]))
 
@@ -92,17 +92,18 @@ class Parser:
         """SEQUENCE : SEQUENCE ',' EXPRESSION
                     | EXPRESSION"""
         if len(p) == 2:
-            p[0] = ast.SequenceNode([p[1]])
+            p[0] = ast.SequenceNode([p[1]], p[1].lineno)
         elif len(p) == 4:
             p[1].append(p[3])
             p[0] = p[1]
         if self.debug:
-                print('p_sequence: {}'.format(p[0]))
+            print('p_sequence: {}'.format(p[0]))
 
     def p_value(self, p):
         """VALUE : CONST_VALUE
                  | MATRIX
-                 | ACCESS"""
+                 | ACCESS
+                 | CONST_ID"""
         p[0] = p[1]
         if self.debug:
             print('p_value: {}'.format(p[0]))
@@ -110,21 +111,20 @@ class Parser:
     def p_const_value(self, p):
         """CONST_VALUE : FLOAT
                        | INT
-                       | STRING
-                       | ID"""
-        p[0] = ast.ConstValueNode(p[1])
+                       | STRING"""
+        p[0] = ast.ConstValueNode(p[1], p.lineno(1))
         if self.debug:
             print('p_const_value: {}'.format(p[0]))
 
     def p_const_id(self, p):
         """CONST_ID : ID"""
-        p[0] = ast.ConstValueNode(p[1])
+        p[0] = ast.IdNode(p[1], p.lineno(1))
         if self.debug:
             print('p_const_id: {}'.format(p[0]))
 
     def p_matrix(self, p):
         """MATRIX : '[' ROWS ']'"""
-        p[0] = ast.MatrixNode(p[2])
+        p[0] = ast.MatrixNode(p[2], p.lineno(1))
         if self.debug:
             print('p_matrix: {}'.format(p[0]))
 
@@ -144,7 +144,7 @@ class Parser:
                       | EXPRESSION M_MINUS EXPRESSION
                       | EXPRESSION M_TIMES EXPRESSION
                       | EXPRESSION M_DIVIDE EXPRESSION"""
-        p[0] = ast.ExpressionNode(p[1], p[2], p[3])
+        p[0] = ast.ExpressionNode(p[1], p[2], p[3], p[1].lineno)
         if self.debug:
             print('p_expression: {}'.format(p[0]))
 
@@ -153,7 +153,7 @@ class Parser:
                       | EXPRESSION '-' EXPRESSION
                       | EXPRESSION '*' EXPRESSION
                       | EXPRESSION '/' EXPRESSION"""
-        p[0] = ast.ExpressionNode(p[1], p[2], p[3])
+        p[0] = ast.ExpressionNode(p[1], p[2], p[3], p[1].lineno)
         if self.debug:
             print('p_expression: {}'.format(p[0]))
 
@@ -161,13 +161,13 @@ class Parser:
         """EXPRESSION : EYE '(' EXPRESSION ')'
                       | ZEROS '(' EXPRESSION ')'
                       | ONES '(' EXPRESSION ')'"""
-        p[0] = ast.FunctionNode(p[1], p[3])
+        p[0] = ast.FunctionNode(p[1], p[3], p.lineno(1))
         if self.debug:
             print('p_expression: {}'.format(p[0]))
 
     def p_expression_transopse(self, p):
         """EXPRESSION : EXPRESSION "'" """
-        p[0] = ast.TranspositionNode(p[1])
+        p[0] = ast.TranspositionNode(p[1], p[1].lineno)
         if self.debug:
             print('p_expression: {}'.format(p[0]))
 
@@ -185,7 +185,7 @@ class Parser:
 
     def p_expression_unary(self, p):
         """EXPRESSION : '-' EXPRESSION %prec UNARY"""
-        p[0] = ast.NegationNode(p[2])
+        p[0] = ast.NegationNode(p[2], p.lineno(1))
         if self.debug:
             print('p_expression: {}'.format(p[0]))
 
@@ -195,13 +195,13 @@ class Parser:
                    | CONTINUE
                    | RETURN EXPRESSION"""
         if p[1] == 'print':
-            p[0] = ast.PrintNode(p[2])
+            p[0] = ast.PrintNode(p[2], p.lineno(1))
         elif p[1] == 'return':
-            p[0] = ast.ReturnNode(p[2])
+            p[0] = ast.ReturnNode(p[2], p.lineno(1))
         elif p[1] == 'break':
-            p[0] = ast.BreakNode()
+            p[0] = ast.BreakNode(p.lineno(1))
         elif p[1] == 'continue':
-            p[0] = ast.ContinueNode()
+            p[0] = ast.ContinueNode(p.lineno(1))
         if self.debug:
             print('p_keyword: {}'.format(p[0]))
 
@@ -212,13 +212,13 @@ class Parser:
                      | EXPRESSION NEQ EXPRESSION
                      | EXPRESSION GE EXPRESSION
                      | EXPRESSION LE EXPRESSION"""
-        p[0] = ast.ConditionNode(p[1], p[2], p[3])
+        p[0] = ast.ConditionNode(p[1], p[2], p[3], p[1].lineno)
         if self.debug:
             print('p_condition: {}'.format(p[0]))
 
     def p_block_statement(self, p):
         """BLOCK_STATEMENT : '{' INSTRUCTIONS '}'"""
-        p[0] = ast.BlockNode(p[2])
+        p[0] = ast.BlockNode(p[2], p.lineno(1))
         if self.debug:
             print('p_block_statement: {}'.format(p[0]))
 
@@ -226,21 +226,21 @@ class Parser:
         """IF_STATEMENT : IF '(' CONDITION ')' INSTRUCTION %prec IFX
                         | IF '(' CONDITION ')' INSTRUCTION ELSE INSTRUCTION"""
         if len(p) == 8:
-            p[0] = ast.IfElseNode(p[3], p[5], p[7])
+            p[0] = ast.IfElseNode(p[3], p[5], p[7], p.lineno(1))
         elif len(p) == 6:
-            p[0] = ast.IfNode(p[3], p[5])
+            p[0] = ast.IfNode(p[3], p[5], p.lineno(1))
         if self.debug:
             print('p_if_statement: {}'.format(p[0]))
 
     def p_while_statement(self, p):
         """WHILE_STATEMENT : WHILE '(' CONDITION ')' INSTRUCTION"""
-        p[0] = ast.WhileNode(p[3], p[5])
+        p[0] = ast.WhileNode(p[3], p[5], p.lineno(1))
         if self.debug:
             print('p_while_statement: {}'.format(p[0]))
 
     def p_for_statement(self, p):
         """FOR_STATEMENT : FOR CONST_ID '=' RANGE INSTRUCTION"""
-        p[0] = ast.ForNode(p[2], p[4], p[5])
+        p[0] = ast.ForNode(p[2], p[4], p[5], p.lineno(1))
         if self.debug:
             print('p_for_statement: {}'.format(p[0]))
 
@@ -248,8 +248,8 @@ class Parser:
         """RANGE : EXPRESSION ':' EXPRESSION
                  | EXPRESSION ':' EXPRESSION ':' EXPRESSION"""
         if len(p) == 4:
-            p[0] = ast.RangeNode(p[1], p[3])
+            p[0] = ast.RangeNode(p[1], p[3], p[1].lineno)
         elif len(p) == 6:
-            p[0] = ast.RangeNode(p[1], p[3], p[5])
+            p[0] = ast.RangeNode(p[1], p[3], p[1].lineno, jump=p[5])
         if self.debug:
             print('p_range: {}'.format(p[0]))

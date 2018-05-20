@@ -24,6 +24,10 @@ class TreePrinter:
     def printTree(self, indent=0):
         print_with_ident(self.value, indent)
 
+    @addToClass(ast.IdNode)
+    def printTree(self, indent=0):
+        print_with_ident(self.value, indent)
+
     @addToClass(ast.ProgramNode)
     def printTree(self, indent=0):
         for instruction in self.instructions:
