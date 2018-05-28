@@ -4,12 +4,13 @@ from ply import yacc
 
 from TreePrinter import TreePrinter
 from TypeChecker import TypeChecker
+from Interpreter import Interpreter
 from mparser import Parser
 
 
 def read_file():
     try:
-        filename = sys.argv[1] if len(sys.argv) > 1 else "examples/example10B.m"
+        filename = sys.argv[1] if len(sys.argv) > 1 else "examples/example12.m"
         file = open(filename, "r")
         text = file.read()
         file.close()
@@ -45,6 +46,7 @@ def main():
     ast = parse(text)
     # print_tree(ast)
     check_semantic(ast)
+    ast.accept(Interpreter())
 
 
 if __name__ == '__main__':
