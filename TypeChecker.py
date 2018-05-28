@@ -286,7 +286,7 @@ class TypeChecker(NodeVisitor):
             return self.visit(node.id)
         else:
             name = node.id.value
-            scope = self.scope_table.find_scope(name)
+            scope = self.scope_table.find_variable_scope(name)
             if scope is None:
                 return None
             else:
